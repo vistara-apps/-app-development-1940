@@ -1,235 +1,185 @@
 import React, { useState, useEffect } from 'react'
-import { useWorkout } from '../context/WorkoutContext'
+import { useWorkouts } from '../context/WorkoutContext'
 import { Brain, Lightbulb, Target, TrendingUp, RefreshCw } from 'lucide-react'
-import Card from './ui/Card'
-import Button from './ui/Button'
 
 const Recommendations = () => {
-  const { workouts } = useWorkout()
+  const { workouts, getWorkoutStats } = useWorkouts()
   const [recommendations, setRecommendations] = useState([])
-  const [isLoading, setIsLoading] = useState(false)
-  const [insights, setInsights] = useState([])
+  const [isGenerating, setIsGenerating] = useState(false)
+  const stats = getWorkoutStats()
 
-  // Mock AI recommendations based on workout data
-  const generateRecommendations = () => {
-    setIsLoading(true)
+  // Simulated AI recommendations based on workout data
+  const generateRecommendations = async () => {
+    setIsGenerating(true)
     
-    // Simulate API call delay
-    setTimeout(() => {
-      const mockRecommendations = [
-        {
-          id: 1,
-          type: 'progressive_overload',
-          title: 'Increase Bench Press Weight',
-          description: 'Your bench press has been consistent at 185 lbs for 3 sessions. Consider increasing to 190-195 lbs for your next workout.',
-          priority: 'high',
-          action: 'Add 5-10 lbs to your next bench press session',
-          icon: TrendingUp,
-          confidence: 92
-        },
-        {
-          id: 2,
-          type: 'exercise_variety',
-          title: 'Add Pull Exercise Variety',
-          description: 'You\'ve been focusing heavily on pushing movements. Adding more pulling exercises will improve muscle balance.',
-          priority: 'medium',
-          action: 'Include face pulls or lateral raises in your next session',
-          icon: Target,
-          confidence: 87
-        },
-        {
-          id: 3,
-          type: 'recovery',
-          title: 'Optimize Rest Periods',
-          description: 'Your performance drops after the second exercise. Consider extending rest periods to 2-3 minutes for compound movements.',
-          priority: 'medium',
-          action: 'Increase rest time between heavy sets',
-          icon: Lightbulb,
-          confidence: 78
-        },
-        {
-          id: 4,
-          type: 'consistency',
-          title: 'Maintain Training Frequency',
-          description: 'Your 3x/week schedule is optimal for strength gains. Keep this consistency for best results.',
-          priority: 'low',
-          action: 'Continue current training frequency',
-          icon: Target,
-          confidence: 95
-        }
-      ]
-
-      const mockInsights = [
-        {
-          metric: 'Strength Gain',
-          value: '+12%',
-          trend: 'up',
-          description: 'Above average progression rate'
-        },
-        {
-          metric: 'Volume Load',
-          value: '24,350 lbs',
-          trend: 'up',
-          description: 'Last 7 days total volume'
-        },
-        {
-          metric: 'Consistency',
-          value: '85%',
-          trend: 'stable',
-          description: 'Weekly training adherence'
-        },
-        {
-          metric: 'Recovery',
-          value: 'Good',
-          trend: 'up',
-          description: 'Based on performance patterns'
-        }
-      ]
-
-      setRecommendations(mockRecommendations)
-      setInsights(mockInsights)
-      setIsLoading(false)
-    }, 2000)
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 2000))
+    
+    const insights = [
+      {
+        type: 'strength',
+        title: 'Progressive Overload Opportunity',
+        description: 'Your bench press has plateaued at 185 lbs for 2 weeks. Consider increasing weight by 5-10 lbs or adding an extra set.',
+        priority: 'high',
+        action: 'Increase bench press to 190-195 lbs next session'
+      },
+      {
+        type: 'frequency',
+        title: 'Optimize Training Frequency',
+        description: 'Based on your recovery patterns, you could benefit from training legs twice per week instead of once.',
+        priority: 'medium',
+        action: 'Add a second leg day with lighter intensity'
+      },
+      {
+        type: 'balance',
+        title: 'Muscle Group Balance',
+        description: 'You\'re training chest 40% more than back. Consider adding more pulling exercises to maintain balance.',
+        priority: 'medium',
+        action: 'Add 2 more back exercises to your routine'
+      },
+      {
+        type: 'recovery',
+        title: 'Recovery Optimization',
+        description: 'Your workout intensity has been high for 5 consecutive sessions. Consider a deload week or active recovery.',
+        priority: 'low',
+        action: 'Plan a deload week with 70% of normal intensity'
+      },
+      {
+        type: 'technique',
+        title: 'Form Focus Recommendation',
+        description: 'Your squat volume has increased rapidly. Focus on form and consider recording sets to ensure proper technique.',
+        priority: 'high',
+        action: 'Record squat form or work with a trainer'
+      }
+    ]
+    
+    setRecommendations(insights)
+    setIsGenerating(false)
   }
 
   useEffect(() => {
-    if (workouts.length > 0) {
-      generateRecommendations()
-    }
-  }, [workouts])
+    generateRecommendations()
+  }, [])
 
   const getPriorityColor = (priority) => {
     switch (priority) {
-      case 'high': return 'text-red-400 bg-red-400/20'
-      case 'medium': return 'text-yellow-400 bg-yellow-400/20'
-      case 'low': return 'text-green-400 bg-green-400/20'
-      default: return 'text-gray-400 bg-gray-400/20'
+      case 'high': return 'bg-red-500/20 text-red-400 border-red-500/30'
+      case 'medium': return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30'
+      case 'low': return 'bg-green-500/20 text-green-400 border-green-500/30'
+      default: return 'bg-gray-500/20 text-gray-400 border-gray-500/30'
+    }
+  }
+
+  const getTypeIcon = (type) => {
+    switch (type) {
+      case 'strength': return <Target className="w-5 h-5" />
+      case 'frequency': return <TrendingUp className="w-5 h-5" />
+      case 'balance': return <Brain className="w-5 h-5" />
+      case 'recovery': return <RefreshCw className="w-5 h-5" />
+      case 'technique': return <Lightbulb className="w-5 h-5" />
+      default: return <Brain className="w-5 h-5" />
     }
   }
 
   return (
-    <div className="space-y-6 animate-fadeIn">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-dark-text mb-2">AI Insights & Recommendations</h1>
-        <p className="text-dark-muted">
-          Personalized guidance powered by advanced analysis of your training data.
-        </p>
-      </div>
-
-      {/* Quick Insights */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {insights.map((insight, index) => (
-          <Card key={index} className="gradient-card">
-            <div className="text-center">
-              <p className="text-2xl font-bold text-dark-text mb-1">{insight.value}</p>
-              <p className="text-dark-muted text-sm font-medium mb-2">{insight.metric}</p>
-              <p className="text-xs text-dark-muted">{insight.description}</p>
-            </div>
-          </Card>
-        ))}
-      </div>
-
-      {/* Generate New Recommendations */}
-      <Card>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="w-12 h-12 bg-primary/20 rounded-lg flex items-center justify-center">
-              <Brain className="w-6 h-6 text-primary" />
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold text-dark-text">AI Analysis</h3>
-              <p className="text-dark-muted">
-                {isLoading ? 'Analyzing your training patterns...' : 'Ready to generate new insights'}
-              </p>
-            </div>
-          </div>
-          <Button 
-            onClick={generateRecommendations} 
-            disabled={isLoading}
-            variant="primary"
-          >
-            {isLoading ? (
-              <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-            ) : (
-              <Brain className="w-4 h-4 mr-2" />
-            )}
-            {isLoading ? 'Analyzing...' : 'Refresh Insights'}
-          </Button>
+    <div className="space-y-6 animate-fade-in">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-white mb-2">AI Insights</h1>
+          <p className="text-white/70">Personalized recommendations to optimize your training</p>
         </div>
-      </Card>
+        <button
+          onClick={generateRecommendations}
+          disabled={isGenerating}
+          className="bg-purple-500 hover:bg-purple-600 disabled:opacity-50 text-white px-6 py-3 rounded-lg font-medium transition-colors flex items-center gap-2"
+        >
+          <Brain className={`w-5 h-5 ${isGenerating ? 'animate-pulse' : ''}`} />
+          {isGenerating ? 'Analyzing...' : 'Generate New Insights'}
+        </button>
+      </div>
 
-      {/* Recommendations */}
-      {isLoading ? (
-        <Card>
-          <div className="flex items-center justify-center py-12">
-            <div className="text-center">
-              <RefreshCw className="w-8 h-8 text-primary animate-spin mx-auto mb-4" />
-              <p className="text-dark-text font-medium">Analyzing your workout data...</p>
-              <p className="text-dark-muted text-sm">This may take a few seconds</p>
-            </div>
+      {/* Quick Stats for AI Context */}
+      <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20">
+        <h3 className="text-xl font-semibold text-white mb-4">Training Summary</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="text-center">
+            <p className="text-2xl font-bold text-white">{stats.totalWorkouts}</p>
+            <p className="text-white/70 text-sm">Total Workouts</p>
           </div>
-        </Card>
+          <div className="text-center">
+            <p className="text-2xl font-bold text-white">{stats.avgDuration}m</p>
+            <p className="text-white/70 text-sm">Avg Duration</p>
+          </div>
+          <div className="text-center">
+            <p className="text-2xl font-bold text-white">
+              {Object.keys(stats.exerciseFrequency).length}
+            </p>
+            <p className="text-white/70 text-sm">Unique Exercises</p>
+          </div>
+        </div>
+      </div>
+
+      {/* AI Recommendations */}
+      {isGenerating ? (
+        <div className="bg-white/10 backdrop-blur-lg rounded-xl p-8 border border-white/20 text-center">
+          <div className="w-16 h-16 bg-purple-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Brain className="w-8 h-8 text-purple-400 animate-pulse" />
+          </div>
+          <h3 className="text-xl font-semibold text-white mb-2">AI is analyzing your data...</h3>
+          <p className="text-white/70">Generating personalized recommendations based on your workout history</p>
+        </div>
       ) : (
         <div className="space-y-4">
-          {recommendations.map((rec) => {
-            const IconComponent = rec.icon
-            return (
-              <Card key={rec.id}>
-                <div className="flex items-start space-x-4">
-                  <div className="w-12 h-12 bg-primary/20 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <IconComponent className="w-6 h-6 text-primary" />
+          {recommendations.map((rec, index) => (
+            <div key={index} className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20 hover:bg-white/15 transition-colors">
+              <div className="flex items-start gap-4">
+                <div className="w-10 h-10 bg-purple-500/20 rounded-lg flex items-center justify-center text-purple-400">
+                  {getTypeIcon(rec.type)}
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-2">
+                    <h3 className="text-lg font-semibold text-white">{rec.title}</h3>
+                    <span className={`px-3 py-1 rounded-full text-xs font-medium border ${getPriorityColor(rec.priority)}`}>
+                      {rec.priority} priority
+                    </span>
                   </div>
-                  
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center space-x-3 mb-2">
-                      <h3 className="text-lg font-semibold text-dark-text">{rec.title}</h3>
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getPriorityColor(rec.priority)}`}>
-                        {rec.priority.toUpperCase()}
-                      </span>
-                      <span className="text-dark-muted text-sm">
-                        {rec.confidence}% confidence
-                      </span>
-                    </div>
-                    
-                    <p className="text-dark-muted mb-3">{rec.description}</p>
-                    
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-2">
-                        <Lightbulb className="w-4 h-4 text-accent" />
-                        <span className="text-accent font-medium">Action:</span>
-                        <span className="text-dark-text">{rec.action}</span>
-                      </div>
-                      
-                      <Button variant="outline" size="sm">
-                        Apply
-                      </Button>
-                    </div>
+                  <p className="text-white/70 mb-3">{rec.description}</p>
+                  <div className="bg-white/5 rounded-lg p-3 border border-white/10">
+                    <p className="text-sm font-medium text-white mb-1">Recommended Action:</p>
+                    <p className="text-sm text-green-400">{rec.action}</p>
                   </div>
                 </div>
-              </Card>
-            )
-          })}
+              </div>
+            </div>
+          ))}
         </div>
       )}
 
-      {/* No Data State */}
-      {workouts.length === 0 && (
-        <Card>
-          <div className="text-center py-12">
-            <Brain className="w-16 h-16 text-gray-500 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-dark-text mb-2">
-              Start Training to Get Insights
-            </h3>
-            <p className="text-dark-muted mb-6">
-              Complete a few workouts to receive personalized AI recommendations based on your performance.
-            </p>
-            <Button variant="primary">
-              Log Your First Workout
-            </Button>
+      {/* AI Tips */}
+      <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20">
+        <h3 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
+          <Lightbulb className="w-5 h-5" />
+          Pro Tips
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="bg-white/5 rounded-lg p-4 border border-white/10">
+            <h4 className="text-white font-medium mb-2">Progressive Overload</h4>
+            <p className="text-white/70 text-sm">Gradually increase weight, reps, or sets every 1-2 weeks to continue making progress.</p>
           </div>
-        </Card>
-      )}
+          <div className="bg-white/5 rounded-lg p-4 border border-white/10">
+            <h4 className="text-white font-medium mb-2">Recovery Time</h4>
+            <p className="text-white/70 text-sm">Allow 48-72 hours between training the same muscle groups for optimal recovery.</p>
+          </div>
+          <div className="bg-white/5 rounded-lg p-4 border border-white/10">
+            <h4 className="text-white font-medium mb-2">Consistency Beats Intensity</h4>
+            <p className="text-white/70 text-sm">Regular moderate workouts are more effective than sporadic intense sessions.</p>
+          </div>
+          <div className="bg-white/5 rounded-lg p-4 border border-white/10">
+            <h4 className="text-white font-medium mb-2">Track Everything</h4>
+            <p className="text-white/70 text-sm">Log all exercises, weights, and reps to identify patterns and areas for improvement.</p>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }

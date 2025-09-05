@@ -1,11 +1,12 @@
 import React, { createContext, useContext, useState, useEffect } from 'react'
+import { format } from 'date-fns'
 
 const WorkoutContext = createContext()
 
-export const useWorkout = () => {
+export const useWorkouts = () => {
   const context = useContext(WorkoutContext)
   if (!context) {
-    throw new Error('useWorkout must be used within a WorkoutProvider')
+    throw new Error('useWorkouts must be used within a WorkoutProvider')
   }
   return context
 }
@@ -13,43 +14,38 @@ export const useWorkout = () => {
 export const WorkoutProvider = ({ children }) => {
   const [workouts, setWorkouts] = useState([])
   const [exercises, setExercises] = useState([])
-  const [currentWorkout, setCurrentWorkout] = useState(null)
-  const [isLoading, setIsLoading] = useState(false)
 
-  // Sample data for demo
+  // Initialize with sample data
   useEffect(() => {
     const sampleWorkouts = [
       {
-        workoutId: '1',
-        startTime: new Date('2024-01-15T10:00:00'),
-        endTime: new Date('2024-01-15T11:30:00'),
-        duration: 90,
-        exercises: [
-          { exerciseId: '1', exerciseName: 'Bench Press', sets: 4, reps: 10, weight: 185, restTime: 120 },
-          { exerciseId: '2', exerciseName: 'Squats', sets: 4, reps: 12, weight: 225, restTime: 180 },
-          { exerciseId: '3', exerciseName: 'Deadlifts', sets: 3, reps: 8, weight: 315, restTime: 240 }
-        ]
-      },
-      {
-        workoutId: '2',
-        startTime: new Date('2024-01-17T14:00:00'),
-        endTime: new Date('2024-01-17T15:15:00'),
+        id: 1,
+        date: '2024-01-20',
         duration: 75,
         exercises: [
-          { exerciseId: '4', exerciseName: 'Pull-ups', sets: 4, reps: 8, weight: 0, restTime: 90 },
-          { exerciseId: '5', exerciseName: 'Overhead Press', sets: 3, reps: 10, weight: 135, restTime: 120 },
-          { exerciseId: '6', exerciseName: 'Rows', sets: 4, reps: 12, weight: 155, restTime: 90 }
+          { name: 'Bench Press', sets: 4, reps: 8, weight: 185 },
+          { name: 'Incline Dumbbell Press', sets: 3, reps: 10, weight: 70 },
+          { name: 'Push-ups', sets: 3, reps: 15, weight: 0 }
         ]
       },
       {
-        workoutId: '3',
-        startTime: new Date('2024-01-19T09:00:00'),
-        endTime: new Date('2024-01-19T10:45:00'),
-        duration: 105,
+        id: 2,
+        date: '2024-01-18',
+        duration: 60,
         exercises: [
-          { exerciseId: '7', exerciseName: 'Bench Press', sets: 4, reps: 8, weight: 195, restTime: 120 },
-          { exerciseId: '8', exerciseName: 'Incline Press', sets: 3, reps: 10, weight: 155, restTime: 120 },
-          { exerciseId: '9', exerciseName: 'Dips', sets: 3, reps: 15, weight: 0, restTime: 90 }
+          { name: 'Deadlift', sets: 5, reps: 5, weight: 225 },
+          { name: 'Bent-over Row', sets: 4, reps: 8, weight: 135 },
+          { name: 'Pull-ups', sets: 3, reps: 8, weight: 0 }
+        ]
+      },
+      {
+        id: 3,
+        date: '2024-01-16',
+        duration: 80,
+        exercises: [
+          { name: 'Squat', sets: 5, reps: 5, weight: 205 },
+          { name: 'Leg Press', sets: 4, reps: 12, weight: 315 },
+          { name: 'Leg Curls', sets: 3, reps: 12, weight: 100 }
         ]
       }
     ]
@@ -59,64 +55,65 @@ export const WorkoutProvider = ({ children }) => {
   const addWorkout = (workout) => {
     const newWorkout = {
       ...workout,
-      workoutId: Date.now().toString(),
-      createdAt: new Date()
+      id: Date.now(),
+      date: format(new Date(), 'yyyy-MM-dd')
     }
     setWorkouts(prev => [newWorkout, ...prev])
   }
 
-  const addExercise = (exercise) => {
-    const newExercise = {
-      ...exercise,
-      exerciseId: Date.now().toString(),
-      createdAt: new Date()
-    }
-    setExercises(prev => [...prev, newExercise])
+  const deleteWorkout = (id) => {
+    setWorkouts(prev => prev.filter(workout => workout.id !== id))
   }
 
-  const startWorkout = () => {
-    setCurrentWorkout({
-      startTime: new Date(),
-      exercises: []
+  const getWorkoutStats = () => {
+    const totalWorkouts = workouts.length
+    const totalDuration = workouts.reduce((sum, workout) => sum + workout.duration, 0)
+    const avgDuration = totalWorkouts > 0 ? Math.round(totalDuration / totalWorkouts) : 0
+    
+    const exerciseFrequency = {}
+    workouts.forEach(workout => {
+      workout.exercises.forEach(exercise => {
+        exerciseFrequency[exercise.name] = (exerciseFrequency[exercise.name] || 0) + 1
+      })
     })
-  }
 
-  const endWorkout = () => {
-    if (currentWorkout) {
-      const completedWorkout = {
-        ...currentWorkout,
-        endTime: new Date(),
-        duration: Math.round((new Date() - currentWorkout.startTime) / 60000)
-      }
-      addWorkout(completedWorkout)
-      setCurrentWorkout(null)
+    return {
+      totalWorkouts,
+      totalDuration,
+      avgDuration,
+      exerciseFrequency
     }
   }
 
-  const addExerciseToCurrentWorkout = (exercise) => {
-    if (currentWorkout) {
-      setCurrentWorkout(prev => ({
-        ...prev,
-        exercises: [...prev.exercises, exercise]
-      }))
-    }
-  }
+  const getProgressData = () => {
+    const progressData = []
+    const exerciseProgress = {}
 
-  const value = {
-    workouts,
-    exercises,
-    currentWorkout,
-    isLoading,
-    addWorkout,
-    addExercise,
-    startWorkout,
-    endWorkout,
-    addExerciseToCurrentWorkout,
-    setIsLoading
+    workouts.forEach(workout => {
+      workout.exercises.forEach(exercise => {
+        if (!exerciseProgress[exercise.name]) {
+          exerciseProgress[exercise.name] = []
+        }
+        exerciseProgress[exercise.name].push({
+          date: workout.date,
+          weight: exercise.weight,
+          volume: exercise.sets * exercise.reps * exercise.weight
+        })
+      })
+    })
+
+    return exerciseProgress
   }
 
   return (
-    <WorkoutContext.Provider value={value}>
+    <WorkoutContext.Provider value={{
+      workouts,
+      exercises,
+      addWorkout,
+      deleteWorkout,
+      getWorkoutStats,
+      getProgressData
+    }}>
       {children}
     </WorkoutContext.Provider>
   )
